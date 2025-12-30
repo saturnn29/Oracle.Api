@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = "test_image"
+        IMAGE_TAG  = "v1"
+        CONTAINER_NAME = "oracle-api-container"
+        ORACLE_DB_IP = "192.168.197.129"
+        DB_USER = "c##neworacle"
+        ASPNET_URLS = "http://0.0.0.0:80"
+        DB_PASS = credentials('ORACLE_DB_PASSWORD')
+    }
+
+    stages {
+        stage('Cleanup') {
+            steps {
+                sh "docker rm -f ${CONTAINER_NAME} || true"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh """
+                docker run -d -p 5000:80 \
+                    --name ${CONTAINER_NAME} \
+                    -e ASPNETCORE_URLS=${ASPNET_URLS} \
+                    -e "ConnectionStrings__orcConnection=User Id=${DB_USER};Password=${DB_PASS};Data Source=${ORACLE_DB_IP}:1521/pdb1;" \
+                    ${IMAGE_NAME}:${IMAGE_TAG}
+                """
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sleep 10
+                sh "curl -f http://localhost:5000/api/Course"
+            }
+        }
+    }
+
+    post {
+        failure {
+            sh "docker logs ${CONTAINER_NAME}"
+        }
+    }
+}
