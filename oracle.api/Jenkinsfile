@@ -5,8 +5,8 @@ pipeline {
         IMAGE_NAME = "test_image"
         IMAGE_TAG  = "v1"
         CONTAINER_NAME = "oracle-api-container"
-        ORACLE_DB_IP = "192.168.197.129"
-        DB_USER = "c##neworacle"
+        ORACLE_DB_IP = credentials('ORACLE_DB_IP')
+        DB_USER = credentials('ORACLE_DB_USER')
         ASPNET_URLS = "http://0.0.0.0:80"
         DB_PASS = credentials('ORACLE_DB_PASSWORD')
     }
