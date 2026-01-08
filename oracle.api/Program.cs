@@ -1,4 +1,4 @@
-/* test automation with registry*/
+/* automation testing */
 using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
