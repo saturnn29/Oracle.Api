@@ -1,4 +1,4 @@
-/* test automation 2*/
+/* test automation with docker registry*/
 using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
