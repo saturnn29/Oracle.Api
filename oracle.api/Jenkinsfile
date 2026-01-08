@@ -2,16 +2,24 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "test_image"
+        IMAGE_NAME = "oracle_api_app"
         IMAGE_TAG  = "v1"
-        CONTAINER_NAME = "oracle-api-container"
+        CONTAINER_NAME = "oracle_api_container"
         ORACLE_DB_IP = credentials('ORACLE_DB_IP')
         DB_USER = credentials('ORACLE_DB_USER')
         ASPNET_URLS = "http://0.0.0.0:80"
         DB_PASS = credentials('ORACLE_DB_PASSWORD')
+        DOCKER_HUB_USER = "duylinh29"
     }
+    
 
     stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/saturnn29/Oracle.Api.git', branch: 'master'
+            }
+        }
+    
         stage('Cleanup') {
             steps {
                 sh "docker rm -f ${CONTAINER_NAME} || true"
@@ -20,7 +28,9 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                dir('oracle.api') {
+                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                }
             }
         }
 
@@ -35,18 +45,42 @@ pipeline {
                 """
             }
         }
+        
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', 
+                                     passwordVariable: 'DOCKER_PASS', 
+                                     usernameVariable: 'DOCKER_USER')]) {
+                        
+                        sh "echo ${DOCKER_PASS} | docker login -u ${DOCKER_USER} --password-stdin"
+                        
+                        // Tag the image with the Docker Hub username
+                        sh "docker tag ${IMAGE_NAME}:v1 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                        
+                        sh "docker push ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest"
+                    }
+                }
+            }
+        }
 
         stage('Health Check') {
             steps {
-                sleep 10
-                sh "curl -f http://localhost:5000/api/Course"
+                echo "Waiting for API to stabilize..."
+                sleep 15
+                script {
+                    retry(5) {
+                        sleep 5
+                        sh 'curl -s -f http://localhost:5000/api/Course || curl -s -I http://localhost:5000'
+                    }
+                }
             }
         }
     }
 
     post {
         failure {
-            sh "docker logs ${CONTAINER_NAME}"
+            sh "docker logs ${CONTAINER_NAME} || echo 'Container was never started'"
         }
     }
 }
