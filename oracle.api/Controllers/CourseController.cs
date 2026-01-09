@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using oracle.api.Dtos.Course;
 using oracle.api.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 
 namespace oracle.api.Controllers
 {
@@ -15,13 +16,14 @@ namespace oracle.api.Controllers
             _courseService = courseService;
         }
 
-	[AllowAnonymous] // bypass security
+	[AllowsAnonymous]
         [HttpGet("GetAllCourse/{pageIndex}/{PageSize}")]
         public ActionResult GetAllCourse(int pageIndex, int pageSize)
         {
             return Ok(_courseService.GetAllCourse(pageIndex, pageSize));
         }
 
+	
         [HttpGet("GetAllCourseWithAuthor/{pageIndex}/{PageSize}")]
         public ActionResult GetAllCourseWithAuthor(int pageIndex, int pageSize)
         {
