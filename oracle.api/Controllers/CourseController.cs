@@ -15,6 +15,7 @@ namespace oracle.api.Controllers
             _courseService = courseService;
         }
 
+	[AllowAnonymous]
         [HttpGet("GetAllCourse/{pageIndex}/{PageSize}")]
         public ActionResult GetAllCourse(int pageIndex, int pageSize)
         {
