@@ -15,7 +15,7 @@ namespace oracle.api.Controllers
             _courseService = courseService;
         }
 
-	[AllowAnonymous]
+	[AllowAnonymous] // bypass security
         [HttpGet("GetAllCourse/{pageIndex}/{PageSize}")]
         public ActionResult GetAllCourse(int pageIndex, int pageSize)
         {
