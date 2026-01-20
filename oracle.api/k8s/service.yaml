@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: oracle-api-service
+spec:
+  # NodePort makes the service accessible from outside the cluster
+  type: NodePort 
+  selector:
+    app: oracle-api 
+  ports:
+    - protocol: TCP
+      port: 80         # The port other apps inside the cluster use to talk to the API
+      targetPort: 80   # The port .NET app is listening on inside the container
+      nodePort: 30001  # The port that will use in your browser/Postman

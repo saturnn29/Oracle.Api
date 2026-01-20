@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oracle-api-deployment
+  labels:
+    app: oracle-api
+spec:
+  replicas: 2  # High Availability: 2 copies will run across the cluster
+  selector:
+    matchLabels:
+      app: oracle-api
+  template:
+    metadata:
+      labels:
+        app: oracle-api
+    spec:
+      containers:
+      - name: oracle-api
+        image: duylinh29/oracle_api_app:latest 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        
+        env:
+        # 1. Sensitive Data from K8s Secret (created by Jenkins)
+        - name: DB_PASS
+          valueFrom:
+            secretKeyRef:
+              name: oracle-db-secret
+              key: password
+
+        # 2. Non-sensitive Data from ConfigMap
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: oracle-config
+              key: db_host
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: oracle-config
+              key: db_port
+        - name: DB_SERVICE
+          valueFrom:
+            configMapKeyRef:
+              name: oracle-config
+              key: db_service
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: oracle-config
+              key: db_user
+
+        # Health Checks: K8s will restart the pod if this fails
+        livenessProbe:
+          httpGet:
+            path: /api/Course/GetAllCourse/1/10
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
