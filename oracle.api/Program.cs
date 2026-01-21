@@ -1,4 +1,4 @@
-/* automation testing */
+/* jenkins pipeline automation testing */
 using System;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
